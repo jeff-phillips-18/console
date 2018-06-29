@@ -31,12 +31,16 @@
 @import "~bootstrap-sass/assets/stylesheets/bootstrap/tooltip";
 @import "~bootstrap-sass/assets/stylesheets/bootstrap/utilities";
 @import "~bootstrap-sass/assets/stylesheets/bootstrap/responsive-utilities";
+@import "~c3/src/scss/main";
 @import "~patternfly/dist/sass/patternfly/mixins";  // Including this file breaks sourcemaps
 @import '~patternfly/dist/sass/patternfly/icons';  // Including this file breaks sourcemaps
 @import '~patternfly/dist/sass/patternfly/type';
 @import '~patternfly/dist/sass/patternfly/buttons';
+@import '~patternfly/dist/sass/patternfly/charts';
 @import '~patternfly/dist/sass/patternfly/dropdowns';
 @import '~patternfly/dist/sass/patternfly/breadcrumbs';
 @import '~patternfly/dist/sass/patternfly/modals';
 @import '~patternfly/dist/sass/patternfly/alerts';
 @import '~patternfly/dist/sass/patternfly/context-selector';
+@import '~patternfly/dist/sass/patternfly/blank-slate';
+@import '~react-select/dist/react-select.css';

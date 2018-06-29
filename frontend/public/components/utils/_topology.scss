@@ -1,0 +1,165 @@
+.topology-container {
+  background-color: transparent;
+  overflow: auto;
+
+  .graph {
+    border: 1px solid $color-pf-black-700;
+    min-width: 300px;
+    min-height: 500px;
+  }
+
+  .container-rect {
+    fill: $color-pf-blue-100;
+    fill-opacity: 1;
+    stroke-width: 1;
+  }
+
+  .container-title {
+    margin: 20px 15px;
+    font-size: 16px;
+  }
+
+  .node-circle {
+    stroke-width: 2px;
+    stroke: $color-pf-black-700;
+    fill: $color-pf-black-100;
+
+    &.node-donut-circle {
+      stroke-width: 4px;
+      stroke: $color-pf-blue-300;
+      fill: $color-pf-black-100;
+    }
+  }
+
+  .node-image-container {
+    display: flex;
+    justify-content: center;
+    margin: 10px;
+    height: calc(100% - 20px);
+  }
+
+  .node-selection-circle {
+    stroke-width: 3px;
+    stroke: $color-pf-blue-200;
+    fill: none;
+  }
+
+  .node-image {
+    width: 100%;
+    height: 100%;
+  }
+
+  .node-icon {
+    font-size: 36px;
+  }
+
+  .node-title {
+    margin: 0;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    &.selected {
+      color: $color-pf-blue-300;
+    }
+  }
+
+  .node-input-connector {
+    stroke-width: 1px;
+    stroke: $color-pf-black-500;
+    fill: $color-pf-black-100;
+  }
+
+  .node-input-connector-selection {
+    stroke-width: 3px;
+    stroke: $color-pf-blue-200;
+    fill: none;
+  }
+
+  .connection-line {
+    fill: none;
+    stroke: $color-pf-black-500;
+    stroke-width: 3px;
+
+    &.selected {
+      stroke-width: 3px;
+      stroke: $color-pf-blue-200;
+    }
+  }
+
+  .connection-line-selector {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 5px;
+
+    &.selected {
+      stroke: $color-pf-blue-200;
+    }
+  }
+}
+
+.topology-details-metrics {
+  display: flex;
+  flex-direction: row;
+
+  .details-metric {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+.pod-donut {
+  .c3-defocused {
+    // Adjusting the default hover "opacity: .3" to be slightly darker
+    // and prevent the "c3-Running" state from looking similar to "c3-Not-Ready" state
+    // https://github.com/openshift/origin/issues/9253
+    opacity: .5 !important;
+  }
+  .c3-tooltip-container {
+    top: -27px !important;
+    left: 50% !important;
+    transform: translateX(-50%);
+    // prevent text wrap
+    white-space: nowrap;
+  }
+  // Give an empty pod donut chart a light gray outline.
+  path.c3-arc-Empty {
+    stroke: $color-pf-black-300;
+    // Override the style set in JavaScript since you can't click or hover
+    // on the empty chart.
+    cursor: inherit !important;
+  }
+  .c3-tooltip-name--Empty .name {
+    // hide tooltip text 'Empty'
+    display:none;
+  }
+}
+
+.topology-details-metrics {
+  .deployment-donut-column {
+    display: flex;
+    flex-direction: column;
+  }
+  .deployment-donut-row {
+    display: flex;
+  }
+  .scaling-controls {
+    justify-content: center;
+    .btn.btn-link {
+      color: $color-pf-black-400;
+      font-size: 24px;
+      &:hover, &:active {
+        color: $color-pf-black-600;
+        text-decoration: none;
+      }
+      &.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        &:hover {
+          color: $color-pf-black-400;
+        }
+      }
+    }
+  }
+}

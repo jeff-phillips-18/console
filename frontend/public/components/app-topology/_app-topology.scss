@@ -1,0 +1,262 @@
+$app-topology-transition-delay: 0.25s;
+
+@-webkit-keyframes loading-spin2 {
+  from { -webkit-transform: rotate(0deg);}
+  to { -webkit-transform: rotate(360deg);}
+}
+
+@keyframes loading-spin {
+  from { transform: scale(1) rotate(0deg);}
+  to { transform: scale(1) rotate(360deg);}
+}
+
+.app-topology-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  > div {
+    &:last-of-type {
+      display: flex;
+      flex: 1;
+    }
+  }
+}
+.app-topology {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .Select-placeholder, .Select--single > .Select-control .Select-value {
+    line-height: 1.66667;
+    padding: 2px 6px;
+  }
+
+  .Select-control {
+    height: inherit;
+  }
+
+  .Select-input {
+    height: inherit;
+    padding-left: 0;
+
+    > input {
+      line-height: 1.66667;
+      padding: 2px 6px;
+    }
+  }
+
+  .blank-slate-pf {
+    background: transparent;
+    border: 0;
+    width: 100%;
+
+    .pficon-in-progress {
+      -animation: loading-spin 1s infinite linear;
+      -webkit-animation: loading-spin2 1s infinite linear;
+    }
+  }
+
+  .co-m-pane__filter-bar {
+    @media (min-width: $screen-sm) {
+      border-bottom: 1px solid $color-pf-black-300;
+      margin-bottom: 0;
+      margin-left: 0;
+      margin-right: 0;
+      padding: 0 30px 20px;
+    }
+  }
+
+  .co-m-pane__filter-bar-group-label {
+    margin-right: 10px;
+    line-height: 1.66667;
+    padding: 2px 0;
+  }
+
+  .co-m-pane__filter-bar-group-value {
+    flex: 1;
+  }
+
+  .app-topology-view {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    padding-left: 30px;
+  }
+
+  .topology-view {
+    flex: 1;
+  }
+
+  .app-topology-details {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 1);
+    -webkit-transition:height, $app-topology-transition-delay linear;
+    -moz-transition: height, $app-topology-transition-delay linear;
+    -ms-transition: height, $app-topology-transition-delay linear;
+    -o-transition: height, $app-topology-transition-delay linear;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    transition: height, $app-topology-transition-delay linear;
+    width: 0;
+
+    &.shown {
+      -webkit-transition:height, $app-topology-transition-delay linear;
+      -moz-transition: height, $app-topology-transition-delay linear;
+      -ms-transition: height, $app-topology-transition-delay linear;
+      -o-transition: height, $app-topology-transition-delay linear;
+      transition: height, $app-topology-transition-delay linear;
+      max-width: 100%;
+      width: 600px;
+      &.details-collapsed {
+        width: 38px;
+      }
+    }
+
+    .details-header-button {
+      color: $gray-darker;
+      cursor: pointer;
+      line-height: inherit;
+      padding: 2px 10px;
+      position: absolute;
+      &:hover,
+      &:focus {
+        color: $color-pf-blue-400;
+        text-decoration: none;
+      }
+      &:hover {
+        color: $link-color;
+      }
+    }
+
+    .details-toggle-collapse {
+      left: 0;
+      &:before {
+        content: "\f101";
+        font-family: "FontAwesome";
+      }
+    }
+
+    .details-close {
+      right: 0;
+      &:before {
+        content: $pficon-var-close;
+        font-family: $icon-font-name-pf;
+      }
+    }
+
+    &.details-collapsed {
+      .details-toggle-collapse {
+        &:before {
+          content: "\f100";
+        }
+      }
+      .details-close {
+        display: none;
+      }
+      .co-m-nav-title--detail {
+        padding: 25px 0 0;
+      }
+      .co-m-pane__heading {
+        border-top: 1px solid $color-pf-black-700;
+        padding-top: 10px;
+      }
+      .co-m-pane__name {
+        margin: 0;
+        padding-left: 4px;
+        writing-mode: vertical-lr;
+      }
+      .co-m-resource-icon {
+        height: inherit;
+        margin-bottom: 15px;
+        padding: 7px 0;
+      }
+      .btn--actions {
+        display: none;
+      }
+    }
+  }
+
+  .details-body {
+    flex: 1;
+    overflow-y: auto;
+    z-index: 200;
+  }
+
+  .topology-details-metrics {
+    display: flex;
+    flex-direction: row;
+
+    .details-metric {
+      display: flex;
+      flex: 1;
+      justify-content: center;
+    }
+  }
+
+  .app-topology-pod-donut {
+    .c3-defocused {
+      // Adjusting the default hover "opacity: .3" to be slightly darker
+      // and prevent the "c3-Running" state from looking similar to "c3-Not-Ready" state
+      // https://github.com/openshift/origin/issues/9253
+      opacity: .5 !important;
+    }
+    .c3-tooltip-container {
+      top: calc(100% + 10px) !important;
+      left: 50% !important;
+      transform: translateX(-50%);
+      // prevent text wrap
+      white-space: nowrap;
+    }
+    // Give an empty pod donut chart a light gray outline.
+    path.c3-arc-Empty {
+      stroke: $color-pf-black-300;
+      // Override the style set in JavaScript since you can't click or hover
+      // on the empty chart.
+      cursor: inherit !important;
+    }
+    .c3-tooltip-name--Empty .name {
+      // hide tooltip text 'Empty'
+      display:none;
+    }
+  }
+
+  .app-topology-pod-donut.mini {
+    .donut-title-big-pf {
+      font-size: 12px;
+    }
+    .donut-title-small-pf {
+      font-size: 8px;
+    }
+  }
+
+  .topology-details-metrics {
+    .deployment-donut-column {
+      display: flex;
+      flex-direction: column;
+    }
+    .deployment-donut-row {
+      display: flex;
+    }
+    .scaling-controls {
+      justify-content: center;
+      .btn.btn-link {
+        color: $color-pf-black-400;
+        font-size: 24px;
+        &:hover, &:active {
+          color: $color-pf-black-600;
+          text-decoration: none;
+        }
+        &.disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+          &:hover {
+            color: $color-pf-black-400;
+          }
+        }
+      }
+    }
+  }
+}

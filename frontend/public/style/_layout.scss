@@ -12,6 +12,8 @@ body,
   @media (min-width: $grid-float-breakpoint) {
     padding-left: $sidebar-width;
     padding-top: $masthead-height-desktop;
+    display: flex;
+    flex-direction: column;
   }
 }
 
