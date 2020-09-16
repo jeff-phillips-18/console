@@ -1,7 +1,6 @@
 import * as React from 'react';
-import * as classNames from 'classnames';
 import * as _ from 'lodash';
-import { FormControl, FormGroup, HelpBlock } from 'patternfly-react';
+import { Checkbox, FormGroup, TextArea, TextInput } from '@patternfly/react-core';
 import { Dropdown } from '@console/internal/components/utils';
 import { ELEMENT_TYPES, networkTypeParams, NetworkTypeParams } from '../../constants';
 
@@ -48,7 +47,13 @@ const getSriovNetNodePolicyResourceNames = (sriovNetNodePoliciesData) => {
 };
 
 export default (props) => {
-  const { networkType, setTypeParamsData, sriovNetNodePoliciesData, typeParamsData } = props;
+  const {
+    networkType,
+    setTypeParamsData,
+    sriovNetNodePoliciesData,
+    typeParamsData,
+    formGroupsClassName = '',
+  } = props;
   const params: NetworkTypeParams = networkType && networkTypeParams[networkType];
 
   if (_.isEmpty(params)) {
@@ -62,128 +67,103 @@ export default (props) => {
   const dynamicContent = _.map(params, (parameter, key) => {
     const validationMsg = _.get(typeParamsData, [key, 'validationMsg'], null);
     const elemType = _.get(parameter, 'type');
+    const validated = validationMsg ? 'error' : 'default';
+    const fieldId = `network-type-parameters-${key}`;
+    const value = _.get(typeParamsData, `${key}.value`);
 
     let children;
     switch (elemType) {
       case ELEMENT_TYPES.TEXTAREA:
         children = (
-          <>
-            <label
-              className={classNames('control-label', {
-                'co-required': parameter.required,
-              })}
-            >
-              {_.get(parameter, 'name', key)}
-            </label>
-            <FormControl
-              componentClass={ELEMENT_TYPES.TEXTAREA}
-              bsClass="pf-c-form-control"
-              value={_.get(typeParamsData, `${key}.value`, '')}
-              onChange={(event) =>
-                handleTypeParamChange(
-                  key,
-                  event,
-                  ELEMENT_TYPES.TEXTAREA,
-                  networkType,
-                  setTypeParamsData,
-                  typeParamsData,
-                )
-              }
-            />
-            <HelpBlock>{validationMsg || null}</HelpBlock>
-          </>
+          <TextArea
+            id={`${fieldId}-textarea`}
+            value={value || ''}
+            validated={validated}
+            aria-describedby={`${fieldId}-helper`}
+            onChange={(event) =>
+              handleTypeParamChange(
+                key,
+                event,
+                ELEMENT_TYPES.TEXTAREA,
+                networkType,
+                setTypeParamsData,
+                typeParamsData,
+              )
+            }
+          />
         );
         break;
       case ELEMENT_TYPES.CHECKBOX:
         children = (
-          <>
-            <div className="checkbox">
-              <label>
-                <input
-                  type="checkbox"
-                  className="create-storage-class-form__checkbox"
-                  onChange={(event) =>
-                    handleTypeParamChange(
-                      key,
-                      event,
-                      ELEMENT_TYPES.CHECKBOX,
-                      networkType,
-                      setTypeParamsData,
-                      typeParamsData,
-                    )
-                  }
-                  checked={_.get(typeParamsData, `${key}.value`, false)}
-                  id={`network-type-params-${key}-checkbox`}
-                />
-                {_.get(parameter, 'name', key)}
-              </label>
-            </div>
-            <HelpBlock>{validationMsg || null}</HelpBlock>
-          </>
+          <Checkbox
+            id={`${fieldId}-checkbox`}
+            label={parameter?.name ?? key}
+            onChange={(event) =>
+              handleTypeParamChange(
+                key,
+                event,
+                ELEMENT_TYPES.CHECKBOX,
+                networkType,
+                setTypeParamsData,
+                typeParamsData,
+              )
+            }
+            checked={value || false}
+          />
         );
         break;
       case ELEMENT_TYPES.DROPDOWN:
         children = (
-          <>
-            <label className={classNames('control-label', { 'co-required': parameter.required })}>
-              {_.get(parameter, 'name', key)}
-            </label>
-            <Dropdown
-              title={parameter.hintText}
-              items={parameter.values}
-              dropDownClassName="dropdown--full-width"
-              selectedKey={_.get(typeParamsData, `${key}.value`)}
-              onChange={(event) =>
-                handleTypeParamChange(
-                  key,
-                  event,
-                  ELEMENT_TYPES.DROPDOWN,
-                  networkType,
-                  setTypeParamsData,
-                  typeParamsData,
-                )
-              }
-            />
-            <HelpBlock>{validationMsg || null}</HelpBlock>
-          </>
+          <Dropdown
+            id={`${fieldId}-dropdown`}
+            title={parameter.hintText}
+            items={parameter.values}
+            dropDownClassName="dropdown--full-width"
+            selectedKey={value}
+            onChange={(event) =>
+              handleTypeParamChange(
+                key,
+                event,
+                ELEMENT_TYPES.DROPDOWN,
+                networkType,
+                setTypeParamsData,
+                typeParamsData,
+              )
+            }
+          />
         );
         break;
       case ELEMENT_TYPES.TEXT:
       default:
         children = (
-          <>
-            <label
-              className={classNames('control-label', {
-                'co-required': parameter.required,
-              })}
-            >
-              {_.get(parameter, 'name', key)}
-            </label>
-            <FormControl
-              type="text"
-              bsClass="pf-c-form-control"
-              value={_.get(typeParamsData, `${key}.value`, '')}
-              onChange={(event) =>
-                handleTypeParamChange(
-                  key,
-                  event,
-                  ELEMENT_TYPES.TEXT,
-                  networkType,
-                  setTypeParamsData,
-                  typeParamsData,
-                )
-              }
-            />
-            <HelpBlock>{validationMsg || null}</HelpBlock>
-          </>
+          <TextInput
+            id={`${fieldId}-text`}
+            aria-describedby={`${fieldId}-helper`}
+            value={value || ''}
+            validated={validated}
+            onChange={(event) =>
+              handleTypeParamChange(
+                key,
+                event,
+                ELEMENT_TYPES.TEXTAREA,
+                networkType,
+                setTypeParamsData,
+                typeParamsData,
+              )
+            }
+          />
         );
     }
 
     return (
       <FormGroup
+        className={formGroupsClassName}
         key={key}
-        controlId={`network-type-parameters-${key}`}
-        validationState={_.get(typeParamsData, `${key}.validationMsg`, null) ? 'error' : null}
+        fieldId={fieldId}
+        label={parameter?.name ?? key}
+        isRequired={parameter.required}
+        validated={validated}
+        helperTextInvalid={validationMsg}
       >
         {children}
       </FormGroup>

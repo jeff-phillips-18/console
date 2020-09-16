@@ -2,8 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as _ from 'lodash';
-import { Form, FormControl, FormGroup, HelpBlock } from 'patternfly-react';
-import { ActionGroup, Alert, Button } from '@patternfly/react-core';
+import { ActionGroup, Alert, Button, Form, FormGroup, TextInput } from '@patternfly/react-core';
 import { referenceForModel, k8sCreate } from '@console/internal/module/k8s';
 import {
   ButtonBar,
@@ -187,7 +186,7 @@ const NetworkAttachmentDefinitionFormBase = (props) => {
   const [typeParamsData, setTypeParamsData] = React.useState<TypeParamsData>({});
   const [error, setError] = React.useState(null);
   const [fieldErrors, setFieldErrors] = React.useState<FieldErrors>({});
-
+  const validated = fieldErrors.nameValidationMsg ? 'error' : 'default';
   const networkTypeDropdownItems = getNetworkTypes(hasSriovNetNodePolicyCRD, hasHyperConvergedCRD);
 
   const formIsValid = React.useMemo(
@@ -218,37 +217,29 @@ const NetworkAttachmentDefinitionFormBase = (props) => {
       <Form>
         <FormGroup
           fieldId="basic-settings-name"
-          validationState={fieldErrors.nameValidationMsg ? 'error' : null}
+          isRequired
+          label="Name"
+          validated={validated}
+          helperTextInvalid={fieldErrors.nameValidationMsg}
         >
-          <label className="control-label co-required" htmlFor="network-attachment-definition-name">
-            Name
-          </label>
-          <FormControl
-            type="text"
-            bsClass="pf-c-form-control"
+          <TextInput
+            validated={validated}
             placeholder={name}
             id="network-attachment-definition-name"
-            onChange={(e) => handleNameChange(e.target.value, fieldErrors, setName, setFieldErrors)}
+            aria-describedby="basic-settings-name-helper"
+            onChange={(val) => handleNameChange(val, fieldErrors, setName, setFieldErrors)}
             value={name}
           />
-          <HelpBlock>{fieldErrors.nameValidationMsg || null}</HelpBlock>
         </FormGroup>
-
-        <FormGroup fieldId="basic-settings-description">
-          <label htmlFor="network-attachment-definition-description">Description</label>
-          <FormControl
-            type="text"
-            bsClass="pf-c-form-control"
+        <FormGroup fieldId="basic-settings-description" label="Description">
+          <TextInput
             id="network-attachment-definition-description"
-            onChange={(e) => setDescription(e.target.value)}
+            aria-describedby="network-attachment-definition-description-helper"
+            onChange={(val) => setDescription(val)}
             value={description}
           />
         </FormGroup>
-
-        <FormGroup fieldId="basic-settings-network-type">
-          <label className="control-label co-required" htmlFor="network-type">
-            Network Type
-          </label>
+        <FormGroup fieldId="basic-settings-network-type" label="Network Type">
           {_.isEmpty(networkTypeDropdownItems) && (
             <Alert
               className="co-alert"
@@ -272,14 +263,13 @@ const NetworkAttachmentDefinitionFormBase = (props) => {
           />
         </FormGroup>
 
-        <div className="co-form-subsection">
-          <NetworkTypeOptions
-            networkType={networkType}
-            setTypeParamsData={setTypeParamsData}
-            sriovNetNodePoliciesData={sriovNetNodePoliciesData}
-            typeParamsData={typeParamsData}
-          />
-        </div>
+        <NetworkTypeOptions
+          networkType={networkType}
+          setTypeParamsData={setTypeParamsData}
+          sriovNetNodePoliciesData={sriovNetNodePoliciesData}
+          typeParamsData={typeParamsData}
+          formGroupsClassName="co-form-subsection"
+        />
 
         <ButtonBar errorMessage={error ? error.message : ''} inProgress={loading}>
           <ActionGroup className="pf-c-form">
