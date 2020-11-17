@@ -11,7 +11,7 @@
     "@console/plugin-sdk": "0.0.0-fixed",
     "@console/shared": "0.0.0-fixed",
     "@console/dev-console": "0.0.0-fixed",
-    "@patternfly/react-console": "1.x"
+    "@patternfly/react-console": "4.1.3"
   },
   "consolePlugin": {
     "entry": "src/plugin.tsx",

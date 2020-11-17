@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { AccessConsoles, SerialConsole } from '@patternfly/react-console';
+import { SerialConsole, constants } from '@patternfly/react-console';
 import { WSFactory } from '@console/internal/module/ws-factory';
 import { getName } from '@console/shared/src/selectors';
 import { VMIKind } from '../../types';
 
-const { CONNECTED, DISCONNECTED, LOADING } = AccessConsoles.constants;
+const { CONNECTED, DISCONNECTED, LOADING, SERIAL_CONSOLE_TYPE } = constants;
 
 // The protocol is complex and backend implementation not stable - let's keep logging to simplify debugging in production.
 const { debug, info, error } = console;
@@ -124,7 +124,7 @@ export const SerialConsoleConnector: React.FC<SerialConsoleConnectorProps> = (pr
     />
   );
 };
-SerialConsoleConnector.displayName = AccessConsoles.constants.SERIAL_CONSOLE_TYPE; // for child-recognition by AccessConsoles
+SerialConsoleConnector.displayName = SERIAL_CONSOLE_TYPE; // for child-recognition by AccessConsoles
 
 type SerialConsoleConnectorProps = {
   vmi: VMIKind;

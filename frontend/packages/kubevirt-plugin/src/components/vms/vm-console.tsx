@@ -39,6 +39,8 @@ import { VolumeWrapper } from '../../k8s/wrapper/vm/volume-wrapper';
 import { CloudInitDataHelper } from '../../k8s/wrapper/vm/cloud-init-data-helper';
 import { CLOUD_INIT_MISSING_USERNAME } from '../../utils/strings';
 
+import './vm-console.scss';
+
 const VMIsDown: React.FC = () => (
   <div className="co-m-pane__body">
     <div className="kubevirt-vm-consoles__loading">
@@ -182,7 +184,7 @@ const VMConsoles: React.FC<VMConsolesProps> = ({
           />
         </StackItem>
       )}
-      <StackItem>
+      <StackItem isFilled className="kv-vm-console">
         <AccessConsoles
           preselectedType={consoleType?.toPatternflyLabel()}
           disconnectByChange={false}

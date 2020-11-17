@@ -1,0 +1,6 @@
+.kv-vm-console {
+  margin: 0 var(--pf-global--spacer--md);
+  .pf-c-console__serial {
+    overflow-y: auto;
+  }
+}
