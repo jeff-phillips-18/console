@@ -22,3 +22,23 @@ export const applyDisplayOptions = () =>
   import('./operatorFilters' /* webpackChunkName: "operators-topology-components" */).then((m) =>
     m.applyDisplayOptions(),
   );
+
+export const operatorBackedPanelSupported = () =>
+  import('./getOperatorBackedPanel' /* webpackChunkName: "operators-topology-components" */).then(
+    (m) => m.operatorBackedPanelSupported,
+  );
+
+export const getOperatorBackedPanel = () =>
+  import('./getOperatorBackedPanel' /* webpackChunkName: "operators-topology-components" */).then(
+    (m) => m.getOperatorBackedPanel,
+  );
+
+export const serviceBindingRequestPanelSupported = () =>
+  import(
+    './getServiceBindingRequestPanel' /* webpackChunkName: "operators-topology-components" */
+  ).then((m) => m.serviceBindingRequestPanelSupported);
+
+export const getServiceBindingRequestPanel = () =>
+  import(
+    './getServiceBindingRequestPanel' /* webpackChunkName: "operators-topology-components" */
+  ).then((m) => m.getServiceBindingRequestPanel);

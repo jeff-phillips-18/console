@@ -5,6 +5,7 @@ import {
   TopologyDataModelFactory,
   TopologyDisplayFilters,
   TopologyCreateConnector,
+  TopologySidePanelProvider,
 } from '../extensions/topology';
 import { WatchK8sResources } from '@console/internal/components/utils/k8s-watch-hook';
 import { referenceForModel } from '@console/internal/module/k8s';
@@ -19,6 +20,10 @@ import {
   getDataModelReconciler,
   getTopologyFilters,
   applyDisplayOptions,
+  operatorBackedPanelSupported,
+  getOperatorBackedPanel,
+  serviceBindingRequestPanelSupported,
+  getServiceBindingRequestPanel,
 } from './index';
 import { doContextualBinding } from '../utils/connector-utils';
 
@@ -27,6 +32,7 @@ export type OperatorsTopologyConsumedExtensions =
   | TopologyDataModelFactory
   | TopologyCreateConnector
   | TopologyDisplayFilters
+  | TopologySidePanelProvider
   | PostFormSubmissionAction;
 
 const getOperatorWatchedResources = (namespace: string): WatchK8sResources<any> => {
@@ -100,6 +106,27 @@ export const operatorsTopologyPlugin: Plugin<OperatorsTopologyConsumedExtensions
     properties: {
       type: INCONTEXT_ACTIONS_SERVICE_BINDING,
       callback: doContextualBinding,
+    },
+    flags: {
+      required: [ALLOW_SERVICE_BINDING_FLAG],
+    },
+  },
+  {
+    type: 'Topology/SidePanel',
+    properties: {
+      id: 'operator-backed-panel',
+      priority: 100,
+      supportsEntity: getExecutableCodeRef(operatorBackedPanelSupported),
+      sidePanel: getExecutableCodeRef(getOperatorBackedPanel),
+    },
+  },
+  {
+    type: 'Topology/SidePanel',
+    properties: {
+      id: 'sbr-panel',
+      priority: 100,
+      supportsEntity: getExecutableCodeRef(serviceBindingRequestPanelSupported),
+      sidePanel: getExecutableCodeRef(getServiceBindingRequestPanel),
     },
     flags: {
       required: [ALLOW_SERVICE_BINDING_FLAG],

@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { ResourceOverviewPage } from '@console/internal/components/overview/resource-overview-page';
-import { TopologyDataObject } from '@console/topology/src/topology-types';
+import { GraphElement } from '@patternfly/react-topology';
 
 export type TopologyResourcePanelProps = {
-  item: TopologyDataObject;
+  selectedEntity: GraphElement;
 };
 
-const TopologyHelmWorkloadPanel: React.FC<TopologyResourcePanelProps> = ({ item }) => {
+const TopologyHelmWorkloadPanel: React.FC<TopologyResourcePanelProps> = ({ selectedEntity }) => {
+  const item = selectedEntity.getData();
   const resourceItemToShowOnSideBar = item && item.resources;
 
   return (

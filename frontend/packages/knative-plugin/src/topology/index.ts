@@ -27,3 +27,23 @@ export const getCreateConnector = () =>
   import('./create-connector-utils' /* webpackChunkName: "knative-create-connector" */).then(
     (m) => m.getCreateConnector,
   );
+
+export const knativeResourceOverviewPageSupported = () =>
+  import('./getKnativeResourceOverviewPage' /* webpackChunkName: "knative-components" */).then(
+    (m) => m.knativeResourceOverviewPageSupported,
+  );
+
+export const getKnativeResourceOverviewPage = () =>
+  import('./getKnativeResourceOverviewPage' /* webpackChunkName: "knative-components" */).then(
+    (m) => m.getKnativeResourceOverviewPage,
+  );
+
+export const knativeEdgePanelSupported = () =>
+  import('./getKnativeEdgePanel' /* webpackChunkName: "knative-components" */).then(
+    (m) => m.knativeEdgePanelSupported,
+  );
+
+export const getKnativeEdgePanel = () =>
+  import('./getKnativeEdgePanel' /* webpackChunkName: "knative-components" */).then(
+    (m) => m.getKnativeEdgePanel,
+  );

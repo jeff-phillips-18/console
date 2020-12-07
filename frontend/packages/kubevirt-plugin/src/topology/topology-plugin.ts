@@ -4,6 +4,7 @@ import {
   TopologyComponentFactory,
   TopologyDataModelFactory,
   TopologyDisplayFilters,
+  TopologySidePanelProvider,
 } from '@console/topology/src/extensions';
 import { TemplateModel } from '@console/internal/models';
 import { WatchK8sResources } from '@console/internal/components/utils/k8s-watch-hook';
@@ -12,12 +13,15 @@ import {
   getIsKubevirtResource,
   getKubevirtComponentFactory,
   getKubevirtTopologyDataModel,
+  getVmPanel,
+  vmPanelSupported,
 } from './index';
 
 export type TopologyConsumedExtensions =
   | TopologyComponentFactory
   | TopologyDataModelFactory
-  | TopologyDisplayFilters;
+  | TopologyDisplayFilters
+  | TopologySidePanelProvider;
 
 const virtualMachineResourceWatchers = (namespace: string): WatchK8sResources<any> => ({
   virtualmachines: {
@@ -83,6 +87,18 @@ export const getTopologyPlugin = (required: string[]): Plugin<TopologyConsumedEx
       workloadKeys: ['virtualmachines'],
       getDataModel: getExecutableCodeRef(getKubevirtTopologyDataModel),
       isResourceDepicted: getExecutableCodeRef(getIsKubevirtResource),
+    },
+    flags: {
+      required,
+    },
+  },
+  {
+    type: 'Topology/SidePanel',
+    properties: {
+      id: 'vm-side-panel',
+      priority: 1000,
+      supportsEntity: getExecutableCodeRef(vmPanelSupported),
+      sidePanel: getExecutableCodeRef(getVmPanel),
     },
     flags: {
       required,

@@ -6,6 +6,7 @@ import {
   TopologyDisplayFilters,
   TopologyCreateConnector,
   TopologyDecoratorProvider,
+  TopologySidePanelProvider,
 } from '@console/topology/src/extensions';
 import { TopologyDecoratorQuadrant } from '@console/topology/src/topology-types';
 import {
@@ -15,6 +16,8 @@ import {
   getTopologyFilters,
   applyDisplayOptions,
   getCreateConnector,
+  knativeResourceOverviewPageSupported,
+  getKnativeResourceOverviewPage,
 } from './index';
 import {
   FLAG_KNATIVE_EVENTING,
@@ -68,7 +71,8 @@ export type TopologyConsumedExtensions =
   | TopologyDataModelFactory
   | TopologyDisplayFilters
   | TopologyCreateConnector
-  | TopologyDecoratorProvider;
+  | TopologyDecoratorProvider
+  | TopologySidePanelProvider;
 
 export const topologyPlugin: Plugin<TopologyConsumedExtensions> = [
   {
@@ -131,6 +135,25 @@ export const topologyPlugin: Plugin<TopologyConsumedExtensions> = [
       priority: 100,
       quadrant: TopologyDecoratorQuadrant.upperRight,
       decorator: getExecutableCodeRef(getServiceRouteDecorator),
+    },
+    flags: {
+      required: [
+        FLAG_KNATIVE_SERVING_CONFIGURATION,
+        FLAG_KNATIVE_SERVING,
+        FLAG_KNATIVE_SERVING_REVISION,
+        FLAG_KNATIVE_SERVING_ROUTE,
+        FLAG_KNATIVE_SERVING_SERVICE,
+        FLAG_KNATIVE_EVENTING,
+      ],
+    },
+  },
+  {
+    type: 'Topology/SidePanel',
+    properties: {
+      id: 'knative-resource-overview-panel',
+      priority: 1000,
+      supportsEntity: getExecutableCodeRef(knativeResourceOverviewPageSupported),
+      sidePanel: getExecutableCodeRef(getKnativeResourceOverviewPage),
     },
     flags: {
       required: [

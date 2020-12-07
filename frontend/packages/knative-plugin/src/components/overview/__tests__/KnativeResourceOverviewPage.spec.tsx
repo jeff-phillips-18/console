@@ -8,7 +8,7 @@ import {
   EventSubscriptionObj,
 } from '../../../topology/__tests__/topology-knative-test-data';
 import { RevisionModel, EventingSubscriptionModel } from '../../../models';
-import { KnativeResourceOverviewPage } from '../KnativeResourceOverviewPage';
+import { ConnectedKnativeResourceOverviewPage } from '../KnativeResourceOverviewPage';
 import SinkUriResourcesTab from '../SinkUriResourcesTab';
 import { NodeType } from '../../../topology/topology-types';
 
@@ -21,18 +21,22 @@ describe('KnativeResourceOverviewPage', () => {
   });
 
   it('should not render if kindsInFlight is true and knativeModels is empty', () => {
-    const wrapper = shallow(<KnativeResourceOverviewPage item={item} kindsInFlight />);
+    const wrapper = shallow(<ConnectedKnativeResourceOverviewPage item={item} kindsInFlight />);
     expect(wrapper.isEmptyRender()).toBe(true);
   });
   it('should render LoadingBox kindsInFlight is true and knativeModels is not empty', () => {
     const wrapper = shallow(
-      <KnativeResourceOverviewPage item={item} knativeModels={[RevisionModel]} kindsInFlight />,
+      <ConnectedKnativeResourceOverviewPage
+        item={item}
+        knativeModels={[RevisionModel]}
+        kindsInFlight
+      />,
     );
     expect(wrapper.find(LoadingBox)).toHaveLength(1);
   });
   it('should render ResourceOverviewDetails kindsInFlight is false', () => {
     const wrapper = shallow(
-      <KnativeResourceOverviewPage
+      <ConnectedKnativeResourceOverviewPage
         item={item}
         knativeModels={[RevisionModel]}
         kindsInFlight={false}
@@ -43,7 +47,7 @@ describe('KnativeResourceOverviewPage', () => {
   it('should render ResourceOverviewDetails for subscription with proper action menu', () => {
     const itemData = { ...item, ...{ obj: EventSubscriptionObj } };
     const wrapper = shallow(
-      <KnativeResourceOverviewPage
+      <ConnectedKnativeResourceOverviewPage
         item={itemData}
         knativeModels={[EventingSubscriptionModel]}
         kindsInFlight={false}
@@ -67,7 +71,11 @@ describe('KnativeResourceOverviewPage', () => {
       },
     };
     const wrapper = shallow(
-      <KnativeResourceOverviewPage item={itemData} knativeModels={[RevisionModel]} kindsInFlight />,
+      <ConnectedKnativeResourceOverviewPage
+        item={itemData}
+        knativeModels={[RevisionModel]}
+        kindsInFlight
+      />,
     );
     expect(wrapper.find(SinkUriResourcesTab)).toHaveLength(1);
   });

@@ -45,7 +45,7 @@ const tabs = [
   },
 ];
 
-export const KnativeResourceOverviewPage: React.ComponentType<KnativeResourceOverviewPageProps> = ({
+export const ConnectedKnativeResourceOverviewPage: React.ComponentType<KnativeResourceOverviewPageProps> = ({
   item,
   knativeModels,
   kindsInFlight,
@@ -110,4 +110,4 @@ const mapStateToProps = (state: RootState): StateProps => {
   };
 };
 
-export default connect(mapStateToProps)(KnativeResourceOverviewPage);
+export default connect(mapStateToProps)(ConnectedKnativeResourceOverviewPage);

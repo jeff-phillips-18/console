@@ -5,6 +5,7 @@ import {
   TopologyComponentFactory,
   TopologyDataModelFactory,
   TopologyDisplayFilters,
+  TopologySidePanelProvider,
 } from '@console/topology/src/extensions/topology';
 import {
   getHelmComponentFactory,
@@ -12,12 +13,17 @@ import {
   getIsHelmResource,
   getTopologyFilters,
   applyDisplayOptions,
+  helmReleasePanelSupported,
+  getHelmReleasePanel,
+  helmWorkloadPanelSupported,
+  getHelmWorkloadPanel,
 } from './index';
 
 export type HelmTopologyConsumedExtensions =
   | TopologyComponentFactory
   | TopologyDataModelFactory
-  | TopologyDisplayFilters;
+  | TopologyDisplayFilters
+  | TopologySidePanelProvider;
 
 const getHelmWatchedResources = (namespace: string): WatchK8sResources<any> => {
   return {
@@ -52,6 +58,24 @@ export const helmTopologyPlugin: Plugin<HelmTopologyConsumedExtensions> = [
     properties: {
       getTopologyFilters: getExecutableCodeRef(getTopologyFilters),
       applyDisplayOptions: getExecutableCodeRef(applyDisplayOptions),
+    },
+  },
+  {
+    type: 'Topology/SidePanel',
+    properties: {
+      id: 'helm-release-panel',
+      priority: 300,
+      supportsEntity: getExecutableCodeRef(helmReleasePanelSupported),
+      sidePanel: getExecutableCodeRef(getHelmReleasePanel),
+    },
+  },
+  {
+    type: 'Topology/SidePanel',
+    properties: {
+      id: 'helm-workload-panel',
+      priority: 1000,
+      supportsEntity: getExecutableCodeRef(helmWorkloadPanelSupported),
+      sidePanel: getExecutableCodeRef(getHelmWorkloadPanel),
     },
   },
 ];

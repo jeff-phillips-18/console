@@ -90,15 +90,6 @@ describe('data transformer ', () => {
     ).toMatchSnapshot();
   });
 
-  it('should return false for non knative resource', () => {
-    mockResources = { ...mockResources, pods: { loaded: true, loadError: '', data: [] } };
-    const graphData = getTransformedTopologyData(mockResources, [
-      'deploymentConfigs',
-      'deployments',
-    ]);
-    expect((graphData.nodes[0].data.data as WorkloadData).isKnativeResource).toBeFalsy();
-  });
-
   it('should return a valid daemon set', () => {
     const graphData = getTransformedTopologyData(mockResources, ['daemonSets', 'pods']);
     expect(graphData.nodes).toHaveLength(2);

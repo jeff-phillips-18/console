@@ -97,6 +97,9 @@ export type TopologyDecorator = {
   decorator: TopologyDecoratorGetter;
 };
 
+export type TopologySidePanelGetter = (selectedEntity: GraphElement) => React.ReactElement;
+export type TopologySidePanelSupportsEntity = (selectedEntity: GraphElement) => boolean;
+
 export interface TopologyDataObject<D = {}> {
   id: string;
   name: string;

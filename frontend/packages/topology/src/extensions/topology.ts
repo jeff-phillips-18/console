@@ -11,6 +11,8 @@ import {
   TopologyDataModelReconciler,
   TopologyDecoratorQuadrant,
   TopologyDecoratorGetter,
+  TopologySidePanelGetter,
+  TopologySidePanelSupportsEntity,
 } from '../topology-types';
 
 namespace ExtensionProperties {
@@ -54,6 +56,12 @@ namespace ExtensionProperties {
     quadrant: TopologyDecoratorQuadrant;
     decorator: CodeRef<TopologyDecoratorGetter>;
   }
+  export interface TopologySidePanelProvider {
+    id: string;
+    priority: number;
+    supportsEntity: CodeRef<TopologySidePanelSupportsEntity>;
+    sidePanel: CodeRef<TopologySidePanelGetter>;
+  }
 }
 
 export interface TopologyComponentFactory
@@ -81,6 +89,11 @@ export interface TopologyDecoratorProvider
   type: 'Topology/Decorator';
 }
 
+export interface TopologySidePanelProvider
+  extends Extension<ExtensionProperties.TopologySidePanelProvider> {
+  type: 'Topology/SidePanel';
+}
+
 export const isTopologyComponentFactory = (e: Extension): e is TopologyComponentFactory => {
   return e.type === 'Topology/ComponentFactory';
 };
@@ -99,4 +112,8 @@ export const isTopologyDisplayFilter = (e: Extension): e is TopologyDisplayFilte
 
 export const isTopologyDecoratorProvider = (e: Extension): e is TopologyDecoratorProvider => {
   return e.type === 'Topology/Decorator';
+};
+
+export const isTopologySidePanelProvider = (e: Extension): e is TopologySidePanelProvider => {
+  return e.type === 'Topology/SidePanel';
 };
