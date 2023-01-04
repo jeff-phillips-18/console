@@ -5,7 +5,7 @@ import * as classNames from 'classnames';
 import { safeLoad, safeLoadAll, safeDump } from 'js-yaml';
 import { connect } from 'react-redux';
 import { ActionGroup, Alert, Button, Checkbox } from '@patternfly/react-core';
-import { DownloadIcon, InfoCircleIcon } from '@patternfly/react-icons';
+import { DownloadIcon, InfoCircleIcon, LightbulbIcon } from '@patternfly/react-icons';
 import { Trans, useTranslation } from 'react-i18next';
 
 import {
@@ -50,6 +50,7 @@ import { findOwner } from '../module/k8s/managed-by';
 import { ClusterServiceVersionModel } from '@console/operator-lifecycle-manager/src/models';
 import { definitionFor } from '../module/k8s/swagger';
 import { ImportYAMLResults } from './import-yaml-results';
+import YAMLAssistantSidebar from '@console/shared/src/components/editor/YAMLAssistantSidebar';
 
 const generateObjToLoad = (templateExtensions, kind, id, yaml, namespace = 'default') => {
   const sampleObj = safeLoad(yaml ? yaml : getYAMLTemplates(templateExtensions).getIn([kind, id]));
@@ -117,7 +118,9 @@ const EditYAMLInner = (props) => {
   const [initialized, setInitialized] = React.useState(false);
   const [stale, setStale] = React.useState(false);
   const [sampleObj, setSampleObj] = React.useState(props.sampleObj);
-  const [showSidebar, setShowSidebar] = React.useState(!!create);
+  const [showSidebar, setShowSidebar] = React.useState(false);
+  const allowSidebar = true;
+  const [showAssistant, setShowAssistant] = React.useState(false);
   const [owner, setOwner] = React.useState(null);
   const [notAllowed, setNotAllowed] = React.useState();
   const [displayResults, setDisplayResults] = React.useState();
@@ -619,6 +622,11 @@ const EditYAMLInner = (props) => {
     window.dispatchEvent(new Event('sidebar_toggle'));
   };
 
+  const toggleAssistant = () => {
+    setShowAssistant((prevState) => !prevState);
+    window.dispatchEvent(new Event('sidebar_toggle'));
+  };
+
   const toggleShowTooltips = (v) => {
     props.setShowTooltips(v);
   };
@@ -662,12 +670,20 @@ const EditYAMLInner = (props) => {
   const showSchema = definition && !_.isEmpty(definition.properties);
   const hasSidebarContent = showSchema || (create && !_.isEmpty(samples)) || !_.isEmpty(snippets);
   const sidebarLink =
-    !showSidebar && hasSidebarContent ? (
+    !showSidebar && !showAssistant && hasSidebarContent ? (
       <Button type="button" variant="link" isInline onClick={toggleSidebar}>
         <InfoCircleIcon className="co-icon-space-r co-p-has-sidebar__sidebar-link-icon" />
         {t('public~View sidebar')}
       </Button>
     ) : null;
+  const assistantLink =
+    !showAssistant && !showSidebar ? (
+      <Button type="button" variant="link" isInline onClick={toggleAssistant}>
+        <LightbulbIcon className="co-icon-space-r co-p-has-sidebar__sidebar-link-icon" />
+        {t('public~View assistant')}
+      </Button>
+    ) : null;
+
   const tooltipCheckBox = (
     <Checkbox
       label={t('public~Show tooltips')}
@@ -717,7 +733,11 @@ const EditYAMLInner = (props) => {
                 options={options}
                 showShortcuts={!genericYAML}
                 minHeight="100px"
-                toolbarLinks={sidebarLink ? [tooltipCheckBox, sidebarLink] : [tooltipCheckBox]}
+                toolbarLinks={
+                  sidebarLink || assistantLink
+                    ? [tooltipCheckBox, sidebarLink, assistantLink]
+                    : [tooltipCheckBox]
+                }
                 onChange={onChange}
                 onSave={() => (allowMultiple ? saveAll() : save())}
               />
@@ -810,6 +830,13 @@ const EditYAMLInner = (props) => {
               snippets={snippets}
               sanitizeYamlContent={sanitizeYamlContent}
               toggleSidebar={toggleSidebar}
+            />
+          )}
+          {showAssistant && (
+            <YAMLAssistantSidebar
+              sidebarLabel={t('public~Assistant')}
+              editorRef={monacoRef}
+              toggleSidebar={toggleAssistant}
             />
           )}
         </div>
