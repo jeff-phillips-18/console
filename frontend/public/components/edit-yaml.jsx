@@ -4,7 +4,7 @@ import * as classNames from 'classnames';
 import { safeLoad, safeLoadAll, safeDump } from 'js-yaml';
 import { connect } from 'react-redux';
 import { ActionGroup, Alert, Button } from '@patternfly/react-core';
-import { DownloadIcon, InfoCircleIcon } from '@patternfly/react-icons';
+import { DownloadIcon, InfoCircleIcon, LightbulbIcon } from '@patternfly/react-icons';
 import { Trans, withTranslation } from 'react-i18next';
 
 import {
@@ -46,6 +46,7 @@ import { findOwner } from '../module/k8s/managed-by';
 import { ClusterServiceVersionModel } from '@console/operator-lifecycle-manager/src/models';
 import { definitionFor } from '../module/k8s/swagger';
 import { ImportYAMLResults } from './import-yaml-results';
+import YAMLAssistantSidebar from '@console/shared/src/components/editor/YAMLAssistantSidebar';
 
 const generateObjToLoad = (templateExtensions, kind, id, yaml, namespace = 'default') => {
   const sampleObj = safeLoad(yaml ? yaml : getYAMLTemplates(templateExtensions).getIn([kind, id]));
@@ -93,7 +94,9 @@ export const EditYAML_ = connect(stateToProps)(
             initialized: false,
             stale: false,
             sampleObj: props.sampleObj,
-            showSidebar: !!props.create,
+            allowSidebar: !props.create,
+            showSidebar: false,
+            showAssistant: false,
             owner: null,
           };
           this.monacoRef = React.createRef();
@@ -569,6 +572,13 @@ export const EditYAML_ = connect(stateToProps)(
           window.dispatchEvent(new Event('sidebar_toggle'));
         };
 
+        toggleAssistant = () => {
+          this.setState((state) => {
+            return { showAssistant: !state.showAssistant };
+          });
+          window.dispatchEvent(new Event('sidebar_toggle'));
+        };
+
         sanitizeYamlContent = (id, yaml, kind) => {
           const contentObj = this.getYamlContent_(id, yaml, kind);
           const sanitizedYaml = this.convertObjToYAMLString(contentObj);
@@ -601,7 +611,9 @@ export const EditYAML_ = connect(stateToProps)(
             errors,
             success,
             stale,
+            allowSidebar,
             showSidebar,
+            showAssistant,
             displayResults,
             resourceObjects,
           } = this.state;
@@ -635,10 +647,17 @@ export const EditYAML_ = connect(stateToProps)(
           const hasSidebarContent =
             showSchema || (create && !_.isEmpty(samples)) || !_.isEmpty(snippets);
           const sidebarLink =
-            !showSidebar && hasSidebarContent ? (
+            allowSidebar && !showSidebar && !showAssistant && hasSidebarContent ? (
               <Button type="button" variant="link" isInline onClick={this.toggleSidebar}>
                 <InfoCircleIcon className="co-icon-space-r co-p-has-sidebar__sidebar-link-icon" />
                 {t('public~View sidebar')}
+              </Button>
+            ) : null;
+          const assistantLink =
+            !showAssistant && !showSidebar ? (
+              <Button type="button" variant="link" isInline onClick={this.toggleAssistant}>
+                <LightbulbIcon className="co-icon-space-r co-p-has-sidebar__sidebar-link-icon" />
+                {t('public~View assistant')}
               </Button>
             ) : null;
 
@@ -682,7 +701,9 @@ export const EditYAML_ = connect(stateToProps)(
                         options={options}
                         showShortcuts={!genericYAML}
                         minHeight="100px"
-                        toolbarLinks={sidebarLink ? [sidebarLink] : []}
+                        toolbarLinks={
+                          sidebarLink || assistantLink ? [sidebarLink, assistantLink] : []
+                        }
                         onChange={onChange}
                         onSave={() => (allowMultiple ? this.saveAll() : this.save())}
                       />
@@ -775,6 +796,13 @@ export const EditYAML_ = connect(stateToProps)(
                       snippets={snippets}
                       sanitizeYamlContent={this.sanitizeYamlContent}
                       toggleSidebar={this.toggleSidebar}
+                    />
+                  )}
+                  {showAssistant && (
+                    <YAMLAssistantSidebar
+                      sidebarLabel={t('public~Assistant')}
+                      editorRef={this.monacoRef}
+                      toggleSidebar={this.toggleAssistant}
                     />
                   )}
                 </div>
