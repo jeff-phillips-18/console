@@ -800,7 +800,7 @@ export const EditYAML_ = connect(stateToProps)(
                   )}
                   {showAssistant && (
                     <YAMLAssistantSidebar
-                      sidebarLabel={t('public~Assistant')}
+                      sidebarLabel={t('public~Wisdom Assistant')}
                       editorRef={this.monacoRef}
                       toggleSidebar={this.toggleAssistant}
                     />

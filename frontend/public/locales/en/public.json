@@ -480,7 +480,7 @@
   "An error occurred": "An error occurred",
   "Reload": "Reload",
   "Download": "Download",
-  "Assistant": "Assistant",
+  "Wisdom Assistant": "Wisdom Assistant",
   "Could not load ConfigMaps.": "Could not load ConfigMaps.",
   "Could not load Secrets.": "Could not load Secrets.",
   "Successfully updated the environment variables.": "Successfully updated the environment variables.",

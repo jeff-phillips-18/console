@@ -9,11 +9,14 @@ import {
   TextInput,
 } from '@patternfly/react-core';
 import { Base64 } from 'js-base64';
+import ReactDiffViewer from 'react-diff-viewer';
 import { useTranslation } from 'react-i18next';
 import MonacoEditor from 'react-monaco-editor';
 import { SecretModel } from '@console/internal/models';
 import { k8sGet, K8sResourceKind } from '@console/internal/module/k8s';
 import CloseButton from '../close-button';
+
+import './YAMLAssistantSidebar.scss';
 
 const OPEN_API_COMPLETIONS_URL = 'https://api.openai.com/v1/completions';
 const OPEN_API_EDITS_URL = 'https://api.openai.com/v1/edits';
@@ -57,6 +60,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
   const { t } = useTranslation();
   const [pending, setPending] = React.useState<boolean>();
   const [entry, setEntry] = React.useState<string>();
+  const [previewEdits, setPreviewEdits] = React.useState<string>();
   const [openAIApiKey, setOpenAIApiKey] = React.useState<string>();
   const [completionError, setCompletionError] = React.useState<string | undefined>();
 
@@ -87,6 +91,20 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
     };
   }, []);
 
+  const onAccept = () => {
+    editor.setValue(previewEdits);
+    setEntry('');
+    requestAnimationFrame(() => {
+      setPreviewEdits('');
+      setPending(false);
+    });
+  };
+
+  const onReject = () => {
+    setPreviewEdits('');
+    setPending(false);
+  };
+
   const onSubmit = () => {
     setCompletionError(undefined);
     const currentValue = editor.getValue();
@@ -114,17 +132,18 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
         return response.json();
       })
       .then((data) => {
-        setPending(false);
         if (data) {
           if (data.error) {
             setCompletionError(data.error.message);
+            setPending(false);
             return;
           }
           const { choices } = data;
           if (choices.length) {
-            editor.setValue(choices[0].text.replace(/^\s+|\s+$/g, ''));
+            setPreviewEdits(choices[0].text.replace(/^\s+|\s+$/g, ''));
+          } else {
+            setPending(false);
           }
-          setEntry('');
         }
       })
       .catch((error) => {
@@ -145,33 +164,60 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
       data-test="yaml-assistant-sidebar"
     >
       <div className="co-m-pane__body co-p-has-sidebar__sidebar-body">
-        <CloseButton
-          additionalClassName="co-close-button--float-right co-p-has-sidebar__close-button"
-          onClick={toggleSidebar}
-        />
-        <h2 className="co-p-has-sidebar__sidebar-heading text-capitalize">{sidebarLabel}</h2>
-        <TextInput
-          className="pf-u-mr-md pf-u-mb-md"
-          value={entry}
-          onChange={(value) => setEntry(value)}
-          aria-label="enter description"
-          onKeyDown={onKeyDown}
-          isDisabled={pending}
-        />
-        <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
-          <Button variant={ButtonVariant.secondary} onClick={onSubmit} isDisabled={pending}>
-            {t('console-shared~Submit')}
-          </Button>
-        </Flex>
-        {completionError ? (
-          <Alert
-            className="pf-u-mt-md"
-            variant={AlertVariant.danger}
-            isInline
-            title={t('console-shared~Unable to translate')}
-          >
-            {completionError}
-          </Alert>
+        <div>
+          <CloseButton
+            additionalClassName="co-close-button--float-right co-p-has-sidebar__close-button"
+            onClick={toggleSidebar}
+          />
+          <h2 className="co-p-has-sidebar__sidebar-heading text-capitalize">{sidebarLabel}</h2>
+          <div>{t('console-shared~Enter any prompt and get YAML snippet back!')}</div>
+          <TextInput
+            className="pf-u-mr-md pf-u-mb-md pf-u-mt-xs"
+            value={entry || ''}
+            onChange={(value) => setEntry(value)}
+            aria-label="enter description"
+            onKeyDown={onKeyDown}
+            isDisabled={pending}
+          />
+          <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
+            <Button
+              variant={ButtonVariant.secondary}
+              onClick={onSubmit}
+              isDisabled={pending || !entry}
+            >
+              {t('console-shared~Submit')}
+            </Button>
+          </Flex>
+          {completionError ? (
+            <Alert
+              className="pf-u-mt-md"
+              variant={AlertVariant.danger}
+              isInline
+              title={t('console-shared~Unable to translate')}
+            >
+              {completionError}
+            </Alert>
+          ) : null}
+        </div>
+        {previewEdits ? (
+          <div className="ocs-yaml-assistant__preview">
+            <div>{t('console-shared~Preview')}</div>
+            <div className="ocs-yaml-assistant__preview-text">
+              <ReactDiffViewer
+                oldValue={editor.getValue()}
+                newValue={previewEdits}
+                splitView={false}
+              />
+            </div>
+            <Flex className="pf-u-mt-md" justifyContent={{ default: 'justifyContentFlexStart' }}>
+              <Button variant={ButtonVariant.secondary} onClick={onAccept}>
+                {t('console-shared~Accept')}
+              </Button>
+              <Button variant={ButtonVariant.plain} onClick={onReject}>
+                {t('console-shared~Reject')}
+              </Button>
+            </Flex>
+          </div>
         ) : null}
       </div>
     </div>
