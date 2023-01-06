@@ -834,7 +834,7 @@ const EditYAMLInner = (props) => {
           )}
           {showAssistant && (
             <YAMLAssistantSidebar
-              sidebarLabel={t('public~Assistant')}
+              sidebarLabel={t('public~Wisdom Assistant')}
               editorRef={monacoRef}
               toggleSidebar={toggleAssistant}
             />
