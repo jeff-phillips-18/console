@@ -185,7 +185,18 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
               onClick={onSubmit}
               isDisabled={pending || !entry}
             >
-              {t('console-shared~Submit')}
+              {pending && !previewEdits ? (
+                <div
+                  className={'co-m-loader co-an-fade-in-out ocs-yaml-assistant__pending-button'}
+                  data-test="loading-indicator"
+                >
+                  <div className="co-m-loader-dot__one" />
+                  <div className="co-m-loader-dot__two" />
+                  <div className="co-m-loader-dot__three" />
+                </div>
+              ) : (
+                <>{t('console-shared~Submit')}</>
+              )}
             </Button>
           </Flex>
           {completionError ? (
