@@ -5,6 +5,7 @@ import { Base64 } from 'js-base64';
 import ReactDiffViewer from 'react-diff-viewer';
 import { useTranslation } from 'react-i18next';
 import MonacoEditor from 'react-monaco-editor';
+import { ThemeContext } from '@console/internal/components/ThemeProvider';
 import { SecretModel } from '@console/internal/models';
 import { k8sGet, K8sResourceKind } from '@console/internal/module/k8s';
 import CloseButton from '../close-button';
@@ -56,6 +57,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
   const [previewEdits, setPreviewEdits] = React.useState<string>();
   const [openAIApiKey, setOpenAIApiKey] = React.useState<string>();
   const [completionError, setCompletionError] = React.useState<string | undefined>();
+  const theme = React.useContext(ThemeContext);
 
   const editor = editorRef.current?.editor;
 
@@ -164,15 +166,17 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
           />
           <h2 className="co-p-has-sidebar__sidebar-heading text-capitalize">{sidebarLabel}</h2>
           <div>{t('console-shared~Enter any prompt and get YAML snippet back!')}</div>
-          <TextArea
-            className="pf-u-mr-md pf-u-mb-md pf-u-mt-xs"
-            value={entry || ''}
-            onChange={(value) => setEntry(value)}
-            aria-label="enter description"
-            onKeyDown={onKeyDown}
-            isDisabled={pending}
-            resizeOrientation="vertical"
-          />
+          <div className="pf-u-mr-md pf-u-mb-sm pf-u-mt-xs">
+            <TextArea
+              className="ocs-yaml-assistant__input-area"
+              value={entry || ''}
+              onChange={(value) => setEntry(value)}
+              aria-label="enter description"
+              onKeyDown={onKeyDown}
+              isDisabled={pending}
+              resizeOrientation="vertical"
+            />
+          </div>
           <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
             <Button
               variant={ButtonVariant.secondary}
@@ -195,7 +199,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
           </Flex>
           {completionError ? (
             <Alert
-              className="pf-u-mt-md"
+              className="pf-u-mt-sm"
               variant={AlertVariant.danger}
               isInline
               title={t('console-shared~Unable to translate')}
@@ -212,9 +216,10 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
                 oldValue={editor.getValue()}
                 newValue={previewEdits}
                 splitView={false}
+                useDarkTheme={theme === 'dark'}
               />
             </div>
-            <Flex className="pf-u-mt-md" justifyContent={{ default: 'justifyContentFlexStart' }}>
+            <Flex className="pf-u-mt-sm" justifyContent={{ default: 'justifyContentFlexStart' }}>
               <Button variant={ButtonVariant.secondary} onClick={onAccept}>
                 {t('console-shared~Accept')}
               </Button>
