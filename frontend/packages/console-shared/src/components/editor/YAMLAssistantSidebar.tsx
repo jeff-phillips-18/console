@@ -1,13 +1,6 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import * as React from 'react';
-import {
-  Alert,
-  AlertVariant,
-  Button,
-  ButtonVariant,
-  Flex,
-  TextInput,
-} from '@patternfly/react-core';
+import { Alert, AlertVariant, Button, ButtonVariant, Flex, TextArea } from '@patternfly/react-core';
 import { Base64 } from 'js-base64';
 import ReactDiffViewer from 'react-diff-viewer';
 import { useTranslation } from 'react-i18next';
@@ -152,7 +145,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
       });
   };
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
       onSubmit();
     }
@@ -171,13 +164,14 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
           />
           <h2 className="co-p-has-sidebar__sidebar-heading text-capitalize">{sidebarLabel}</h2>
           <div>{t('console-shared~Enter any prompt and get YAML snippet back!')}</div>
-          <TextInput
+          <TextArea
             className="pf-u-mr-md pf-u-mb-md pf-u-mt-xs"
             value={entry || ''}
             onChange={(value) => setEntry(value)}
             aria-label="enter description"
             onKeyDown={onKeyDown}
             isDisabled={pending}
+            resizeOrientation="vertical"
           />
           <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
             <Button
