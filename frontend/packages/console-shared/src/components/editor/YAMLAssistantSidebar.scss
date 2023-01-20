@@ -1,3 +1,12 @@
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
 .ocs-yaml-assistant {
   .co-p-has-sidebar__sidebar-body {
     top: 0;
@@ -14,6 +23,22 @@
   }
   &__pending-button {
     width: 44px;
+  }
+  &__mic-button {
+    &.m-is-listening {
+      --pf-c-button--m-secondary--Color: var(--pf-global--palette--green-300);
+      --pf-c-button--after--BorderColor: var(--pf-global--palette--green-300);
+      animation: pulse .5s ease-in .4s 1, pulse .5s ease-in 1s infinite;
+      background-position: 50% 50%;
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      transition: background-size .5s, color .5s;
+      &:focus {
+        --pf-c-button--m-secondary--focus--Color: var(--pf-global--palette--green-300);
+        --pf-c-button--after--BorderColor: var(--pf-global--palette--green-300);
+        --pf-c-button--m-secondary--focus--after--BorderColor: var(--pf-global--palette--green-300);
+      }
+    }
   }
   &__preview {
     display: flex;

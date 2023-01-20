@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import * as React from 'react';
 import { Alert, AlertVariant, Button, ButtonVariant, Flex, TextArea } from '@patternfly/react-core';
+import { MicrophoneIcon } from '@patternfly/react-icons';
+import { css } from '@patternfly/react-styles';
+import 'regenerator-runtime/runtime';
 import { Base64 } from 'js-base64';
 import ReactDiffViewer from 'react-diff-viewer';
 import { useTranslation } from 'react-i18next';
 import MonacoEditor from 'react-monaco-editor';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { ThemeContext } from '@console/internal/components/ThemeProvider';
 import { SecretModel } from '@console/internal/models';
 import { k8sGet, K8sResourceKind } from '@console/internal/module/k8s';
@@ -58,8 +62,16 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
   const [openAIApiKey, setOpenAIApiKey] = React.useState<string>();
   const [completionError, setCompletionError] = React.useState<string | undefined>();
   const theme = React.useContext(ThemeContext);
-
   const editor = editorRef.current?.editor;
+  const timeoutRef = React.useRef(null);
+  const transcriptRef = React.useRef<string | undefined>();
+
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+  } = useSpeechRecognition();
 
   React.useEffect(() => {
     let ignore = false;
@@ -86,9 +98,23 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
     };
   }, []);
 
+  const startListening = React.useCallback(() => {
+    SpeechRecognition.startListening({
+      continuous: true,
+    });
+  }, []);
+
+  const stopListening = React.useCallback(() => {
+    SpeechRecognition.stopListening();
+    setEntry(transcript);
+    resetTranscript();
+    transcriptRef.current = '';
+  }, [resetTranscript, transcript]);
+
   const onAccept = () => {
     editor.setValue(previewEdits);
     setEntry('');
+    resetTranscript();
     requestAnimationFrame(() => {
       setPreviewEdits('');
       setPending(false);
@@ -100,7 +126,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
     setPending(false);
   };
 
-  const onSubmit = () => {
+  const onSubmit = React.useCallback(() => {
     setCompletionError(undefined);
     const currentValue = editor.getValue();
 
@@ -145,7 +171,19 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
         setPending(false);
         setCompletionError(error.message);
       });
-  };
+  }, [editor, entry, openAIApiKey]);
+
+  React.useEffect(() => {
+    if (listening && transcript && transcript !== transcriptRef.current) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        stopListening();
+        onSubmit();
+      }, 2000);
+    }
+  }, [listening, onSubmit, stopListening, transcript]);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
@@ -169,33 +207,57 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
           <div className="pf-u-mr-md pf-u-mb-sm pf-u-mt-xs">
             <TextArea
               className="ocs-yaml-assistant__input-area"
-              value={entry || ''}
+              value={entry || transcript}
               onChange={(value) => setEntry(value)}
               aria-label="enter description"
               onKeyDown={onKeyDown}
-              isDisabled={pending}
+              isDisabled={pending || listening}
               resizeOrientation="vertical"
             />
           </div>
-          <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
-            <Button
-              variant={ButtonVariant.secondary}
-              onClick={onSubmit}
-              isDisabled={pending || !entry}
-            >
-              {pending && !previewEdits ? (
-                <div
-                  className={'co-m-loader co-an-fade-in-out ocs-yaml-assistant__pending-button'}
-                  data-test="loading-indicator"
+          <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
+            {entry && !pending ? (
+              <Button
+                className="pf-u-px-0"
+                variant={ButtonVariant.link}
+                onClick={() => setEntry('')}
+              >
+                Clear
+              </Button>
+            ) : (
+              <span />
+            )}
+            <Flex justifyContent={{ default: 'justifyContentFlexEnd' }}>
+              <Button
+                variant={ButtonVariant.secondary}
+                onClick={onSubmit}
+                isDisabled={pending || !entry}
+              >
+                {pending && !previewEdits ? (
+                  <div
+                    className="co-m-loader co-an-fade-in-out ocs-yaml-assistant__pending-button"
+                    data-test="loading-indicator"
+                  >
+                    <div className="co-m-loader-dot__one" />
+                    <div className="co-m-loader-dot__two" />
+                    <div className="co-m-loader-dot__three" />
+                  </div>
+                ) : (
+                  <>{t('console-shared~Submit')}</>
+                )}
+              </Button>
+              {browserSupportsSpeechRecognition ? (
+                <Button
+                  className={css('ocs-yaml-assistant__mic-button', listening && 'm-is-listening')}
+                  variant={ButtonVariant.secondary}
+                  onClick={() => (listening ? stopListening() : startListening())}
+                  isDisabled={pending || !!entry}
+                  aria-label="activate microphone"
                 >
-                  <div className="co-m-loader-dot__one" />
-                  <div className="co-m-loader-dot__two" />
-                  <div className="co-m-loader-dot__three" />
-                </div>
-              ) : (
-                <>{t('console-shared~Submit')}</>
-              )}
-            </Button>
+                  <MicrophoneIcon />
+                </Button>
+              ) : null}
+            </Flex>
           </Flex>
           {completionError ? (
             <Alert
