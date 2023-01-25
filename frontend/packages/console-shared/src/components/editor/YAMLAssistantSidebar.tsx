@@ -1,47 +1,35 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import * as React from 'react';
 import { Alert, AlertVariant, Button, ButtonVariant, Flex, TextArea } from '@patternfly/react-core';
 import { MicrophoneIcon } from '@patternfly/react-icons';
 import { css } from '@patternfly/react-styles';
 import 'regenerator-runtime/runtime';
-import { Base64 } from 'js-base64';
 import ReactDiffViewer from 'react-diff-viewer';
 import { useTranslation } from 'react-i18next';
 import MonacoEditor from 'react-monaco-editor';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import { k8sGetResource } from '@console/dynamic-plugin-sdk/src/utils/k8s';
 import { ThemeContext } from '@console/internal/components/ThemeProvider';
-import { SecretModel } from '@console/internal/models';
-import { k8sGet, K8sResourceKind } from '@console/internal/module/k8s';
+import { ConfigMapModel } from '@console/internal/models';
+import { ConfigMapKind } from '@console/internal/module/k8s';
 import CloseButton from '../close-button';
 
 import './YAMLAssistantSidebar.scss';
 
-const OPEN_API_COMPLETIONS_URL = 'https://api.openai.com/v1/completions';
-const OPEN_API_EDITS_URL = 'https://api.openai.com/v1/edits';
+const OPEN_API_COMPLETIONS_URL = 'api/v1/jobs';
 
-type OpenAPIDataType = {
-  model: string;
-  prompt?: string;
-  input?: string;
-  instruction?: string;
-  temperature?: number;
-  max_tokens?: number;
-  top_p?: number;
-  frequency_penalty?: number;
-  presence_penalty?: number;
+type WidsdomJobDataType = {
+  mode: string;
+  model_id: string;
+  prompt: string;
+  task_id: string;
 };
 
-const OPEN_API_NEW_DATA: OpenAPIDataType = {
-  model: 'text-davinci-002',
-  temperature: 0,
-  max_tokens: 300,
-  top_p: 1,
-  frequency_penalty: 0,
-  presence_penalty: 0,
-};
-
-const OPEN_API_EDIT_DATA: OpenAPIDataType = {
-  model: 'text-davinci-edit-001',
+const WisdomForOCPBody: WidsdomJobDataType = {
+  mode: 'synchronous',
+  task_id: '3',
+  model_id:
+    'L3Byb2plY3RzL2Jsb29tei0xYjcvc3RhY2tvdmVyZmxvdy1kYXRhLWFsbC10YWdzL21hcmtkb3duLzVlNi0yMGVwb2Nocy9jaGVja3BvaW50LTkwMzky',
+  prompt: '',
 };
 
 type YAMLAssistantSidebarProps = {
@@ -59,7 +47,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
   const [pending, setPending] = React.useState<boolean>();
   const [entry, setEntry] = React.useState<string>();
   const [previewEdits, setPreviewEdits] = React.useState<string>();
-  const [openAIApiKey, setOpenAIApiKey] = React.useState<string>();
+  const [wisdomEndpoint, setWisdomEndpoint] = React.useState<string>();
   const [completionError, setCompletionError] = React.useState<string | undefined>();
   const theme = React.useContext(ThemeContext);
   const editor = editorRef.current?.editor;
@@ -76,22 +64,19 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
   React.useEffect(() => {
     let ignore = false;
 
-    const getOpenAIApiKey = async () => {
-      let secret: K8sResourceKind;
-      try {
-        secret = await k8sGet(SecretModel, 'open-ai', 'openshift-config', null);
-      } catch (e) {
-        setCompletionError('Unable to find OpenAI API key');
-        return;
-      }
-      if (ignore) return;
-
-      if (secret) {
-        setOpenAIApiKey(Base64.decode(secret.data?.apiKey));
-      }
-    };
-
-    getOpenAIApiKey();
+    k8sGetResource<ConfigMapKind>({
+      model: ConfigMapModel,
+      name: 'wisdom-api-endpoint',
+      ns: 'openshift-config',
+    })
+      .then((configMap) => {
+        if (!ignore && configMap) {
+          setWisdomEndpoint(configMap.data?.endpoint);
+        }
+      })
+      .catch(() => {
+        setCompletionError('Unable to determine Wisdom Endpoint');
+      });
 
     return () => {
       ignore = true;
@@ -128,21 +113,18 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
 
   const onSubmit = React.useCallback(() => {
     setCompletionError(undefined);
+
     const currentValue = editor.getValue();
+    const currentEntry = currentValue ? `\`\`\`${currentValue}\`\`\`` : '';
 
-    const URL = currentValue ? OPEN_API_EDITS_URL : OPEN_API_COMPLETIONS_URL;
-    let body: OpenAPIDataType;
-    if (!currentValue) {
-      body = { ...OPEN_API_NEW_DATA, prompt: entry };
-    } else {
-      body = { ...OPEN_API_EDIT_DATA, input: currentValue, instruction: entry };
-    }
+    const URL = `${wisdomEndpoint}/${OPEN_API_COMPLETIONS_URL}`;
+    const body = { ...WisdomForOCPBody, prompt: `${currentEntry}${entry}` };
 
-    const options = {
+    const options: RequestInit = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${openAIApiKey}`,
+        Accept: 'application/json',
       },
       body: JSON.stringify(body),
     };
@@ -159,9 +141,9 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
             setPending(false);
             return;
           }
-          const { choices } = data;
-          if (choices.length) {
-            setPreviewEdits(choices[0].text.replace(/^\s+|\s+$/g, ''));
+          const { task_output: taskOutput } = data;
+          if (taskOutput) {
+            setPreviewEdits(taskOutput.replace(/^`+|`+$/g, '').replace(/^\s+|\s+$/g, ''));
           } else {
             setPending(false);
           }
@@ -171,7 +153,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
         setPending(false);
         setCompletionError(error.message);
       });
-  }, [editor, entry, openAIApiKey]);
+  }, [editor, entry, wisdomEndpoint]);
 
   React.useEffect(() => {
     if (listening && transcript && transcript !== transcriptRef.current) {
