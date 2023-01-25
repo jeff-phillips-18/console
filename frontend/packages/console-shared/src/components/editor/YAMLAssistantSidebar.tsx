@@ -84,6 +84,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
   }, []);
 
   const startListening = React.useCallback(() => {
+    transcriptRef.current = '';
     SpeechRecognition.startListening({
       continuous: true,
     });
@@ -93,7 +94,6 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
     SpeechRecognition.stopListening();
     setEntry(transcript);
     resetTranscript();
-    transcriptRef.current = '';
   }, [resetTranscript, transcript]);
 
   const onAccept = () => {
@@ -118,7 +118,10 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
     const currentEntry = currentValue ? `\`\`\`${currentValue}\`\`\`` : '';
 
     const URL = `${wisdomEndpoint}/${OPEN_API_COMPLETIONS_URL}`;
-    const body = { ...WisdomForOCPBody, prompt: `${currentEntry}${entry}` };
+    const body = {
+      ...WisdomForOCPBody,
+      prompt: `${currentEntry}${entry || transcriptRef.current}`,
+    };
 
     const options: RequestInit = {
       method: 'POST',
@@ -160,9 +163,12 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
+      transcriptRef.current = transcript;
       timeoutRef.current = setTimeout(() => {
         stopListening();
-        onSubmit();
+        requestAnimationFrame(() => {
+          onSubmit();
+        });
       }, 2000);
     }
   }, [listening, onSubmit, stopListening, transcript]);
