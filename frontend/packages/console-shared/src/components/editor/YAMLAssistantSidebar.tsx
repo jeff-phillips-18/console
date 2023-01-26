@@ -116,7 +116,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
     setCompletionError(undefined);
 
     const currentValue = editor.getValue();
-    const currentEntry = currentValue ? `\`\`\`${currentValue}\`\`\`` : '';
+    const currentEntry = currentValue ? `\`\`\`\n${currentValue}\n\`\`\`\n` : '';
 
     const URL = `${wisdomEndpoint}/${OPEN_API_COMPLETIONS_URL}`;
     const body = {
@@ -147,7 +147,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
           }
           const { task_output } = data;
           if (task_output) {
-            setPreviewEdits(task_output.replace(/^`+|`+$/g, '').replace(/^\s+|\s+$/g, ''));
+            setPreviewEdits(task_output.replace(/^[`\\s]+|[`\\s]+$/g, ''));
           } else {
             setPending(false);
           }
