@@ -147,7 +147,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
           }
           const { task_output } = data;
           if (task_output) {
-            setPreviewEdits(task_output.replace(/^[`\\s]+|[`\\s]+$/g, ''));
+            setPreviewEdits(task_output.replace(/^[`\s]+|[`\s]+$/g, ''));
           } else {
             setPending(false);
           }
