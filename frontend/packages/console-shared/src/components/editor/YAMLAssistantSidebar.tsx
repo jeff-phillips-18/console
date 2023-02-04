@@ -3,14 +3,15 @@ import { Alert, AlertVariant, Button, ButtonVariant, Flex, TextArea } from '@pat
 import { MicrophoneIcon } from '@patternfly/react-icons';
 import { css } from '@patternfly/react-styles';
 import 'regenerator-runtime/runtime';
+import { Base64 } from 'js-base64';
 import ReactDiffViewer from 'react-diff-viewer';
 import { useTranslation } from 'react-i18next';
 import MonacoEditor from 'react-monaco-editor';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { k8sGetResource } from '@console/dynamic-plugin-sdk/src/utils/k8s';
 import { ThemeContext } from '@console/internal/components/ThemeProvider';
-import { ConfigMapModel } from '@console/internal/models';
-import { ConfigMapKind } from '@console/internal/module/k8s';
+import { ConfigMapModel, SecretModel } from '@console/internal/models';
+import { ConfigMapKind, k8sGet, K8sResourceKind } from '@console/internal/module/k8s';
 import CloseButton from '../close-button';
 
 import './YAMLAssistantSidebar.scss';
@@ -48,6 +49,8 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
   const [entry, setEntry] = React.useState<string>();
   const [previewEdits, setPreviewEdits] = React.useState<string>();
   const [wisdomEndpoint, setWisdomEndpoint] = React.useState<string>();
+  const [wisdomAPIKey, setWisdomAPIKey] = React.useState<string>();
+  const [wisdomAPIEmail, setWisdomAPIEmail] = React.useState<string>();
   const [completionError, setCompletionError] = React.useState<string | undefined>();
   const theme = React.useContext(ThemeContext);
   const editor = editorRef.current?.editor;
@@ -60,6 +63,32 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
     resetTranscript,
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
+
+  React.useEffect(() => {
+    let ignore = false;
+
+    const getWisdomApiKey = async () => {
+      let secret: K8sResourceKind;
+      try {
+        secret = await k8sGet(SecretModel, 'wisdom-api', 'openshift-config', null);
+      } catch (e) {
+        setCompletionError('Unable to find Wisdom API key');
+        return;
+      }
+      if (ignore) return;
+
+      if (secret) {
+        setWisdomAPIKey(Base64.decode(secret.data?.apiKey));
+        setWisdomAPIEmail(Base64.decode(secret.data?.email));
+      }
+    };
+
+    getWisdomApiKey();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   React.useEffect(() => {
     let ignore = false;
@@ -128,6 +157,8 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        Authorization: `Bearer ${wisdomAPIKey}`,
+        Email: `${wisdomAPIEmail}`,
       },
       body: JSON.stringify(body),
     };
@@ -156,7 +187,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
         setPending(false);
         setCompletionError(error.message);
       });
-  }, [editor, entry, wisdomEndpoint]);
+  }, [editor, entry, wisdomAPIEmail, wisdomAPIKey, wisdomEndpoint]);
 
   React.useEffect(() => {
     if (listening && transcript && transcript !== transcriptRef.current) {
