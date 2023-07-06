@@ -152,7 +152,7 @@
     "@patternfly/react-log-viewer": "4.87.100",
     "@patternfly/react-table": "4.113.0",
     "@patternfly/react-tokens": "4.94.6",
-    "@patternfly/react-topology": "4.91.40",
+    "@patternfly/react-topology": "5.0.0-prerelease.1",
     "@patternfly/react-virtualized-extension": "4.88.115",
     "@patternfly/react-user-feedback": "1.0.2",
     "@prometheus-io/codemirror-promql": "^0.37.0",

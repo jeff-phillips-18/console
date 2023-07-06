@@ -1,5 +1,11 @@
 import * as React from 'react';
-import { Node, ContextSubMenuItem, ContextMenuItem, Graph } from '@patternfly/react-topology';
+import {
+  Node,
+  ContextSubMenuItem,
+  ContextMenuItem,
+  Graph,
+  GraphElement,
+} from '@patternfly/react-topology';
 import {
   Action,
   GroupedMenuOption,
@@ -45,7 +51,7 @@ export const groupActionContext = (element: Node, connectorSource?: Node) => ({
   'topology-context-actions': { element, connectorSource },
 });
 
-export const contextMenuActions = (element: Node) => {
+export const contextMenuActions = (element: GraphElement) => {
   const resource = getResource(element);
   const { csvName } = element.getData()?.data ?? {};
   return {
