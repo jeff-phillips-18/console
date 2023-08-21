@@ -16,22 +16,7 @@ import CloseButton from '../close-button';
 
 import './YAMLAssistantSidebar.scss';
 
-const OPEN_API_COMPLETIONS_URL = 'api/v1/jobs';
-
-type WidsdomJobDataType = {
-  mode: string;
-  model_id: string;
-  prompt: string;
-  task_id: string;
-};
-
-const WisdomForOCPBody: WidsdomJobDataType = {
-  mode: 'synchronous',
-  task_id: '3',
-  model_id:
-    'L3Byb2plY3RzL2Jsb29tei0xYjcvc3RhY2tvdmVyZmxvdy1kYXRhLWFsbC10YWdzL21hcmtkb3duLzVlNi0yMGVwb2Nocy9jaGVja3BvaW50LTkwMzky',
-  prompt: '',
-};
+const OPEN_API_COMPLETIONS_URL = 'infer';
 
 type YAMLAssistantSidebarProps = {
   editorRef: React.MutableRefObject<MonacoEditor>;
@@ -50,7 +35,6 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
   const [previewEdits, setPreviewEdits] = React.useState<string>();
   const [wisdomEndpoint, setWisdomEndpoint] = React.useState<string>();
   const [wisdomAPIKey, setWisdomAPIKey] = React.useState<string>();
-  const [wisdomAPIEmail, setWisdomAPIEmail] = React.useState<string>();
   const [completionError, setCompletionError] = React.useState<string | undefined>();
   const theme = React.useContext(ThemeContext);
   const editor = editorRef.current?.editor;
@@ -79,7 +63,6 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
 
       if (secret) {
         setWisdomAPIKey(Base64.decode(secret.data?.apiKey));
-        setWisdomAPIEmail(Base64.decode(secret.data?.email));
       }
     };
 
@@ -148,7 +131,6 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
 
     const URL = `${wisdomEndpoint}/${OPEN_API_COMPLETIONS_URL}`;
     const body = {
-      ...WisdomForOCPBody,
       prompt: `${currentEntry}${entry || transcriptRef.current}`,
     };
 
@@ -158,7 +140,6 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `Bearer ${wisdomAPIKey}`,
-        Email: `${wisdomAPIEmail}`,
       },
       body: JSON.stringify(body),
     };
@@ -171,13 +152,13 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
       .then((data) => {
         if (data) {
           if (data.error) {
-            setCompletionError(data.error.message);
+            setCompletionError(data.error);
             setPending(false);
             return;
           }
-          const { task_output: taskOutput } = data;
-          if (taskOutput) {
-            setPreviewEdits(taskOutput.replace(/^[`\s]+|[`\s]+$/g, ''));
+          const { output } = data;
+          if (output) {
+            setPreviewEdits(output.replace(/^[`\s]+|[`\s]+$/g, ''));
           } else {
             setPending(false);
           }
@@ -187,7 +168,7 @@ const YAMLAssistantSidebar: React.FC<YAMLAssistantSidebarProps> = ({
         setPending(false);
         setCompletionError(error.message);
       });
-  }, [editor, entry, wisdomAPIEmail, wisdomAPIKey, wisdomEndpoint]);
+  }, [editor, entry, wisdomAPIKey, wisdomEndpoint]);
 
   React.useEffect(() => {
     if (listening && transcript && transcript !== transcriptRef.current) {
