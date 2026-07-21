@@ -8,10 +8,6 @@ jest.mock('@patternfly/react-log-viewer', () => ({
   LogViewerSearch: () => <div data-test="log-viewer-search">Search</div>,
 }));
 
-jest.mock('@console/dynamic-plugin-sdk/src/utils/flags', () => ({
-  useFlag: jest.fn(() => false),
-}));
-
 jest.mock('@console/internal/components/ThemeProvider', () => ({
   useTheme: jest.fn(() => ({ isDark: false })),
 }));
@@ -70,44 +66,11 @@ const mockNode: NodeKind = {
 };
 
 describe('NodeLogs', () => {
-  let useFlag: jest.Mock;
-
-  beforeEach(async () => {
-    const flagModule = await import('@console/dynamic-plugin-sdk/src/utils/flags');
-    useFlag = flagModule.useFlag as jest.Mock;
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should render SectionHeading when FLAG_NODE_MGMT_V1 is enabled', async () => {
-    useFlag.mockReturnValue(true);
-
-    render(<NodeLogs obj={mockNode} />);
-
-    await waitFor(() => {
-      const heading = screen.getByTestId('section-heading');
-      expect(heading).toBeInTheDocument();
-    });
-    const heading = screen.getByTestId('section-heading');
-    expect(heading).toHaveTextContent('Logs');
-  });
-
-  it('should not render SectionHeading when FLAG_NODE_MGMT_V1 is disabled', async () => {
-    useFlag.mockReturnValue(false);
-
-    render(<NodeLogs obj={mockNode} />);
-
-    await waitFor(() => {
-      const heading = screen.queryByTestId('section-heading');
-      expect(heading).not.toBeInTheDocument();
-    });
-  });
-
   it('should render PaneBody component', async () => {
-    useFlag.mockReturnValue(false);
-
     render(<NodeLogs obj={mockNode} />);
 
     await waitFor(() => {
@@ -116,8 +79,6 @@ describe('NodeLogs', () => {
   });
 
   it('should render log path selector', async () => {
-    useFlag.mockReturnValue(false);
-
     render(<NodeLogs obj={mockNode} />);
 
     await waitFor(() => {
@@ -127,8 +88,6 @@ describe('NodeLogs', () => {
   });
 
   it('should render log viewer component', async () => {
-    useFlag.mockReturnValue(false);
-
     render(<NodeLogs obj={mockNode} />);
 
     await waitFor(() => {

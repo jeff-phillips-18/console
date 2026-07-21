@@ -17,4 +17,6 @@ set -exuo pipefail
     --k8s-mode-off-cluster-service-account-bearer-token-file=examples/token \
     --k8s-mode-off-cluster-alertmanager="$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.alertmanagerPublicURL}')" \
     --k8s-mode-off-cluster-thanos="$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.thanosPublicURL}')" \
+    --plugin-proxy='{"services": [{"consoleAPIPath": "/api/proxy/plugin/monitoring-console-plugin/perses/", "endpoint":"https://localhost:9002", "authorize": true}]}' \
+    --plugins monitoring-console-plugin=http://localhost:9443 \
     $@

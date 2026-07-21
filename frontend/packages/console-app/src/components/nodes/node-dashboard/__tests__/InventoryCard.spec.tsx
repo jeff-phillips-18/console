@@ -1,6 +1,5 @@
 import { useResolvedExtensions } from '@openshift/dynamic-plugin-sdk';
 import { render, screen } from '@testing-library/react';
-import { useFlag } from '@console/dynamic-plugin-sdk/src/utils/flags';
 import { useK8sWatchResource } from '@console/internal/components/utils/k8s-watch-hook';
 import type { NodeKind } from '@console/internal/module/k8s';
 import InventoryCard from '../InventoryCard';
@@ -9,10 +8,6 @@ import { NodeDashboardContext } from '../NodeDashboardContext';
 jest.mock('@openshift/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift/dynamic-plugin-sdk'),
   useResolvedExtensions: jest.fn(),
-}));
-
-jest.mock('@console/dynamic-plugin-sdk/src/utils/flags', () => ({
-  useFlag: jest.fn(() => false),
 }));
 
 jest.mock('@console/internal/components/utils/k8s-watch-hook', () => ({
@@ -37,7 +32,6 @@ const MockExtensionInventoryItem = jest.fn(() => (
 
 const useResolvedExtensionsMock = useResolvedExtensions as jest.Mock;
 const useK8sWatchResourceMock = useK8sWatchResource as jest.Mock;
-const useFlagMock = useFlag as jest.Mock;
 
 describe('InventoryCard', () => {
   const mockNode: NodeKind = {
@@ -70,7 +64,6 @@ describe('InventoryCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useFlagMock.mockReturnValue(false);
     useResolvedExtensionsMock.mockReturnValue([[], true]);
     useK8sWatchResourceMock.mockReturnValue([[], true, undefined]);
   });
@@ -136,30 +129,6 @@ describe('InventoryCard', () => {
 
     expect(MockExtensionInventoryItem).toHaveBeenCalled();
     expect(screen.getByText('Extension Inventory Item')).toBeVisible();
-  });
-
-  it('should use legacy pods path when FLAG_NODE_MGMT_V1 is disabled', () => {
-    useFlagMock.mockReturnValue(false);
-
-    renderWithContext();
-
-    expect(mockResourceInventoryItem).toHaveBeenCalledWith(
-      expect.objectContaining({
-        basePath: '/k8s/cluster/nodes/test-node/pods',
-      }),
-    );
-  });
-
-  it('should use workload pods path when FLAG_NODE_MGMT_V1 is enabled', () => {
-    useFlagMock.mockReturnValue(true);
-
-    renderWithContext();
-
-    expect(mockResourceInventoryItem).toHaveBeenCalledWith(
-      expect.objectContaining({
-        basePath: '/k8s/cluster/nodes/test-node/workload/pods',
-      }),
-    );
   });
 
   it('should sort inventory items by priority from highest to lowest', () => {

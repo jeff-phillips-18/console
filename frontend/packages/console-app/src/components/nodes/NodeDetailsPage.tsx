@@ -1,34 +1,19 @@
 import type { FC, ComponentProps } from 'react';
-import { useCallback } from 'react';
-import { FLAG_NODE_MGMT_V1 } from '@console/app/src/consts';
-import { ResourceEventStream } from '@console/internal/components/events';
 import { DetailsPage } from '@console/internal/components/factory';
-import { PodsPage } from '@console/internal/components/pod-list';
 import { navFactory } from '@console/internal/components/utils/horizontal-nav';
-import type { PageComponentProps } from '@console/internal/components/utils/horizontal-nav';
 import type { K8sModel, NodeKind } from '@console/internal/module/k8s';
 import { referenceForModel } from '@console/internal/module/k8s';
 import { ActionServiceProvider } from '@console/shared/src/components/actions/ActionServiceProvider';
 import { ActionMenu } from '@console/shared/src/components/actions/menu/ActionMenu';
 import { ActionMenuVariant } from '@console/shared/src/components/actions/types';
-import { useFlag } from '@console/shared/src/hooks/useFlag';
 import { isWindowsNode } from '@console/shared/src/selectors/node';
 import { nodeStatus } from '../../status/node';
 import { NodeConfiguration } from './configuration/NodeConfiguration';
 import { NodeHealth } from './health/NodeHealth';
 import NodeDashboard from './node-dashboard/NodeDashboard';
 import NodeDetails from './NodeDetails';
-import NodeLogs from './NodeLogs';
 import NodeTerminal from './NodeTerminal';
 import { NodeWorkload } from './NodeWorkload';
-
-const NodePodsPage: FC<PageComponentProps<NodeKind>> = ({ obj }) => (
-  <PodsPage
-    showTitle={false}
-    fieldSelector={`spec.nodeName=${obj.metadata.name}`}
-    showNamespaceOverride
-  />
-);
 
 const overviewTab = {
   href: '',
@@ -66,27 +51,17 @@ const workloadTab = {
 };
 
 const yamlTab = navFactory.editYaml();
-const podsTab = navFactory.pods(NodePodsPage);
-const logsTab = navFactory.logs(NodeLogs);
-const eventsTab = navFactory.events(ResourceEventStream);
 const terminalTab = navFactory.terminal(NodeTerminal);
 
+const pagesFor = (node: NodeKind) => {
+  const tabs = [overviewTab, detailsTab, configurationTab, healthTab, workloadTab, yamlTab];
+  if (!isWindowsNode(node)) {
+    tabs.push(terminalTab);
+  }
+  return tabs;
+};
+
 export const NodeDetailsPage: FC<ComponentProps<typeof DetailsPage>> = (props) => {
-  const nodeMgmtV1Enabled = useFlag(FLAG_NODE_MGMT_V1);
-
-  const pagesFor = useCallback(
-    (node: NodeKind) => {
-      const tabs = nodeMgmtV1Enabled
-        ? [overviewTab, detailsTab, configurationTab, healthTab, workloadTab, yamlTab]
-        : [overviewTab, detailsTab, yamlTab, podsTab, logsTab, eventsTab];
-      if (!isWindowsNode(node)) {
-        tabs.push(terminalTab);
-      }
-      return tabs;
-    },
-    [nodeMgmtV1Enabled],
-  );
-
   const customActionMenu = (kindObj: K8sModel, obj: NodeKind) => {
     const resourceKind = referenceForModel(kindObj);
     const context = { [resourceKind]: obj };

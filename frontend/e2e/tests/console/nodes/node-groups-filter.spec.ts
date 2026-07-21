@@ -30,27 +30,12 @@ function filterChips(page: Page) {
   return page.locator('[data-testid="filter-chip"], .pf-v6-c-chip');
 }
 
-async function skipIfGroupsFilterDisabled(page: Page): Promise<void> {
-  if (!(await groupsFilter(page).isVisible().catch(() => false))) {
-    test.skip(true, 'FLAG_NODE_MGMT_V1 is not enabled');
-  }
-}
-
-async function skipIfEditGroupsButtonHidden(page: Page): Promise<void> {
-  const editButton = page.getByRole('button', { name: /edit groups/i });
-  if (!(await editButton.isVisible().catch(() => false))) {
-    test.skip(true, 'FLAG_NODE_MGMT_V1 is not enabled');
-  }
-}
-
 test.describe('Node Groups Filter', () => {
   test.beforeEach(async ({ page }) => {
     await gotoNodesPage(page);
   });
 
-  test('should display the Groups filter when FLAG_NODE_MGMT_V1 is enabled', async ({ page }) => {
-    await skipIfGroupsFilterDisabled(page);
-
+  test('should display the Groups filter', async ({ page }) => {
     const groupsFilterButton = groupsFilter(page);
     await expect(groupsFilterButton).toBeVisible();
 
@@ -66,8 +51,6 @@ test.describe('Node Groups Filter', () => {
   });
 
   test('should show available groups as filter options', async ({ page }) => {
-    await skipIfGroupsFilterDisabled(page);
-
     await groupsFilter(page).click();
 
     const dropdown = filterDropdown(page);
@@ -91,8 +74,6 @@ test.describe('Node Groups Filter', () => {
   });
 
   test('should filter nodes by single group selection', async ({ page }) => {
-    await skipIfGroupsFilterDisabled(page);
-
     const rows = nodeRows(page);
     const initialCount = await rows.count();
 
@@ -128,8 +109,6 @@ test.describe('Node Groups Filter', () => {
   });
 
   test('should filter nodes by multiple group selections (OR logic)', async ({ page }) => {
-    await skipIfGroupsFilterDisabled(page);
-
     await groupsFilter(page).click();
     const dropdown = filterDropdown(page);
     await expect(dropdown).toBeVisible();
@@ -156,8 +135,6 @@ test.describe('Node Groups Filter', () => {
   });
 
   test('should clear individual group filter chips', async ({ page }) => {
-    await skipIfGroupsFilterDisabled(page);
-
     await groupsFilter(page).click();
     const dropdown = filterDropdown(page);
     const firstOption = dropdown.locator('[role="menuitemcheckbox"], .pf-v6-c-check__input').first();
@@ -181,8 +158,6 @@ test.describe('Node Groups Filter', () => {
   });
 
   test('should combine groups filter with other filters', async ({ page }) => {
-    await skipIfGroupsFilterDisabled(page);
-
     const rows = nodeRows(page);
     const initialCount = await rows.count();
 
@@ -225,9 +200,7 @@ test.describe('Edit Groups Button', () => {
     await gotoNodesPage(page);
   });
 
-  test('should display Edit groups button in page header when FLAG_NODE_MGMT_V1 is enabled', async ({ page }) => {
-    await skipIfEditGroupsButtonHidden(page);
-
+  test('should display Edit groups button in page header', async ({ page }) => {
     const editButton = page.getByRole('button', { name: /edit groups/i });
     await expect(editButton).toBeVisible();
 
@@ -237,8 +210,6 @@ test.describe('Edit Groups Button', () => {
   });
 
   test('should show tooltip when user lacks edit permission', async ({ page }) => {
-    await skipIfEditGroupsButtonHidden(page);
-
     const editButton = page.getByRole('button', { name: /edit groups/i });
     if (!(await editButton.isDisabled())) {
       test.skip(true, 'Edit groups button is not disabled');
@@ -254,8 +225,6 @@ test.describe('Edit Groups Button', () => {
   });
 
   test('should open Groups Editor modal when clicked', async ({ page }) => {
-    await skipIfEditGroupsButtonHidden(page);
-
     const editButton = page.getByRole('button', { name: /edit groups/i });
     if (await editButton.isDisabled()) {
       test.skip(true, 'Edit groups button is disabled');
